@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sui
+  name: sui-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sui
+  template:
+    metadata:
+      labels:
+        app: sui
+    spec:
+      containers:
+      - image: igor04091968/sui:latest
+        imagePullPolicy: Never
+        name: sui
+        ports:
+        - containerPort: 2095
+          protocol: TCP
+        resources: {}
+      terminationGracePeriodSeconds: 30

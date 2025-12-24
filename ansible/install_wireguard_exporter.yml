@@ -1,0 +1,47 @@
+---
+- name: Install WireGuard Exporter
+  hosts: monitored_vms
+  become: yes
+  vars:
+    wg_exporter_version: "4.1.0"
+    wg_exporter_arch: "amd64"
+  tasks:
+    - name: Download and unarchive WireGuard exporter
+      ansible.builtin.unarchive:
+        src: "https://github.com/Mind-Flavor/prometheus_wireguard_exporter/releases/download/v{{ wg_exporter_version }}/prometheus_wireguard_exporter-v{{ wg_exporter_version }}-linux-{{ wg_exporter_arch }}.tar.gz"
+        dest: "/usr/local/bin"
+        extra_opts: [--strip-components=1]
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0755'
+        creates: "/usr/local/bin/prometheus_wireguard_exporter"
+
+    - name: Create systemd service file for wireguard_exporter
+      ansible.builtin.template:
+        src: templates/wireguard_exporter_binary.service.j2
+        dest: /etc/systemd/system/wireguard_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload and start wireguard_exporter
+
+    - name: Open port 9586 for wireguard_exporter in iptables
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "9586"
+        ctstate: NEW,ESTABLISHED,RELATED
+        jump: ACCEPT
+        comment: "Allow wireguard_exporter connections"
+      notify: save_iptables_rules
+  handlers:
+    - name: Reload and start wireguard_exporter
+      ansible.builtin.systemd:
+        name: wireguard_exporter
+        daemon_reload: yes
+        state: started
+        enabled: yes
+
+    - name: save_iptables_rules
+      ansible.builtin.command: netfilter-persistent save

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sui-service
+  namespace: default
+spec:
+  ports:
+  - nodePort: 31222
+    port: 2095
+    protocol: TCP
+    targetPort: 2095
+  selector:
+    app: sui
+  type: NodePort

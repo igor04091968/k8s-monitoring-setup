@@ -1,0 +1,47 @@
+grafana:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+alertmanager:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 1d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+    additionalScrapeConfigs:
+      - job_name: 'vds3_node_exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['95.181.224.54:9100']
+            labels:
+              instance: 'vds3'
+      - job_name: 'gw_node_exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['144.31.139.199:9100']
+            labels:
+              instance: 'gw'
+      - job_name: 'vds3_wireguard_exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['95.181.224.54:9586']
+            labels:
+              instance: 'vds3'
+      - job_name: 'gw_wireguard_exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['144.31.139.199:9586']
+            labels:
+              instance: 'gw'
