@@ -15,6 +15,9 @@ spec:
       labels:
         app: sui
     spec:
+      volumes:
+      - name: db-storage
+        emptyDir: {}
       containers:
       - image: igor04091968/sui:latest
         imagePullPolicy: Never
@@ -22,5 +25,28 @@ spec:
         ports:
         - containerPort: 2095
           protocol: TCP
-        resources: {}
+        volumeMounts:
+        - name: db-storage
+          mountPath: /app/db
+        # Security enhancements based on Snyk report
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10001
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - "ALL"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+        livenessProbe:
+          tcpSocket:
+            port: 2095
+          initialDelaySeconds: 15
+          periodSeconds: 20
       terminationGracePeriodSeconds: 30
